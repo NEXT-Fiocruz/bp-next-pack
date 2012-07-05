@@ -25,7 +25,6 @@ class BpNextProfileWidget extends WP_Widget {
 
     }else {
       $this->disconectedUser( $args, $instance );
-       
     }
     echo $after_widget;
   }
@@ -85,7 +84,7 @@ class BpNextProfileWidget extends WP_Widget {
     }
 
     ?>
-      <form method="post" action="<?php bbp_wp_login_action( array( 'context' => 'login_post' ) ); ?>" class="bbp-login-form">
+      <form name="loginform" method="post" action="<?php bbp_wp_login_action( array( 'context' => 'login_post' ) ); ?>" class="bbp-login-form">
         <fieldset>
           <legend><?php _e( 'Log In', 'bbpress' ); ?></legend>
           <div class="bbp-username">
@@ -117,12 +116,11 @@ class BpNextProfileWidget extends WP_Widget {
           <?php endif; ?>
         </fieldset>
       </form>
-      
+       <?php do_action( 'login_footer' ); ?>
     </div>
     <?php
-
   }
-  
+
   function logedUserBlock( $args, $instance ){
     $userdata = wp_get_current_user();
     $user_image_args = array(
@@ -162,6 +160,89 @@ class BpNextProfileWidget extends WP_Widget {
     <?php
   }
 }
+
+
+class BpNextAddWidget extends WP_Widget {
+  function BpNextAddWidget() {
+    parent::WP_Widget( false, $name = 'NEXT add Menu' );
+  }
+
+  function widget( $args, $instance ) {
+    extract( $args );
+
+    echo $before_widget;
+
+    $title = apply_filters('widget_title', $instance['title']);
+    if( $title ) echo $before_title . $title . $after_title;
+    $this->logedUserBlock( $args, $instance ); 
+
+    echo $after_widget;
+  }
+
+  //////////////////////////////////////////////////////
+  //Update the widget settings
+  /**
+   * Update the login widget options
+   *
+   * @param array $new_instance The new instance options
+   * @param array $old_instance The old instance options
+   */
+  function update( $new_instance, $old_instance ) {
+    $instance             = $old_instance;
+    $instance['title']    = strip_tags( $new_instance['title'] );
+
+    return $instance;
+  }
+  
+  ////////////////////////////////////////////////////
+  //Display the widget settings on the widgets admin panel
+  function form( $instance ) {
+
+    // Form values
+    $title    = !empty( $instance['title'] )    ? esc_attr( $instance['title'] )    : '';
+
+    ?>
+
+    <p>
+      <label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:', 'bbpress' ); ?>
+      <input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo $title; ?>" /></label>
+    </p>
+
+
+    <?php
+  }
+
+  
+  function logedUserBlock( $args, $instance ){
+    $userdata = wp_get_current_user();
+    
+    ?>
+    <div class="bp-next-pack-user-menu" >
+    <ul class="superfish-menu sf-vertical sf-js-enabled sf-shadow">
+      <?php
+      // add message
+      ?>
+      <li><a class="sf-with-ul add-group" 
+        href="<?php echo trailingslashit( bp_get_root_domain() . '/members/alberto/messages/compose/' ); ?>">
+      <?php _e( 'Messages', 'buddypress' ); ?> </a></li> <?php
+      
+      // add group link
+      if ( is_user_logged_in() && bp_user_can_create_groups() ){
+        ?><li><a class="sf-with-ul add-group" 
+        href="<?php echo trailingslashit( bp_get_root_domain() . '/' . bp_get_groups_root_slug() . '/create' ); ?>">
+        <?php _e( 'Group', 'buddypress' ); ?> </a></li><?php
+      }
+   
+       // add site
+      ?>
+      <li><a class="sf-with-ul add-group" 
+        href="<?php echo trailingslashit( bp_get_root_domain() . '/sites/create/' ); ?>">
+      <?php _e( 'Messages', 'buddypress' ); ?> </a></li><?php
+    
+    ?> </div></ul> <?php
+  }
+}
+
 
 
 class BpNextUserGroupsWidget extends WP_Widget {
@@ -282,6 +363,8 @@ add_action( 'widgets_init', 'BpNextProfileWidgetInit' );
 function BpNextProfileWidgetInit() {
   register_widget( 'BpNextProfileWidget' );
   register_widget( 'BpNextUserGroupsWidget' );
+  register_widget( 'BpNextAddWidget' );
+  
 }
 
 // **** "logged in  Account" Menu ******
@@ -349,4 +432,88 @@ function bp_next_pack_adminbar_account_menu() {
   echo '</ul>';
   echo '</div>';  
 }
-?>
+
+// _----------------------____------------________-------_______------_______-------_____--
+/**  Alteração no menu de login para melhorar logar também OCS os 2 usando LDAP  **/
+
+/**
+ * Add a "Login with Shibboleth" link to the WordPress login form.  This link 
+ * will be wrapped in a <p> with an id value of "shibboleth_login" so that 
+ * deployers can style this however they choose.
+ */
+function bp_next_pack_login_form() {
+  //$login_url = add_query_arg('action', 'shibboleth');
+  
+  bp_next_pack_ocs_login_sniplet_and_form();
+  
+	// echo '<p id="shibboleth_login"><a href="' . $login_url . '">' . __('Login with Shibboleth', 'shibboleth') . '</a></p>';
+}
+add_action('login_footer', 'bp_next_pack_login_form');
+
+function bp_next_pack_ocs_login_sniplet_and_form() {
+  ?>
+  <div class="container-ocs-form" style="display:none" >
+    <form id="signinForm" name="ocslogin" method="post" target="ocs_iframe" action="http://localhost/confs/index.php/testando/teste/login/signIn">
+
+    <input type="hidden" name="source" value="">
+
+      <table id="signinTable" class="data">
+      <tbody><tr>
+        <td class="label"><label for="loginUsername">Login</label></td>
+        <td class="value"><input type="text" id="loginUsername" name="username" value="next" size="20" maxlength="32" class="textField"></td>
+      </tr>
+      <tr>
+        <td class="label"><label for="loginPassword">Senha</label></td>
+        <td class="value"><input type="password" id="loginPassword" name="password" value="" size="20" maxlength="32" class="textField"></td>
+      </tr>
+        <tr valign="middle">
+        <td></td>
+        <td class="value"><input type="checkbox" id="loginRemember" name="remember" value="1" checked='checked'> <label for="loginRemember">Lembrete com login e senha</label></td>
+      </tr>
+        <tr>
+        <td></td>
+        <td><input id="ocsEnviar" type="submit" value="Acesso" class="button"></td>
+      </tr>
+      </tbody></table>
+    <script type="text/javascript">
+    <!--
+      document.login.loginPassword.focus();
+    // -->
+    </script>
+    </form>
+    
+    <script type="text/javascript">
+    <!--
+      jQuery('form[name=loginform]').submit(function(){
+        var login = jQuery('form[name=loginform]').find('#user_login').val();
+        var senha = jQuery('form[name=loginform]').find('#user_pass').val();
+
+        jQuery('form[name=ocslogin]').find('#loginUsername').val(login);
+        jQuery('form[name=ocslogin]').find('#loginPassword').val(senha);
+        jQuery('form[name=ocslogin]').submit();
+
+        var myIframe = document.getElementById('ocs_iframe');
+        
+        if(jQuery('form[name=ocslogin]').find('#ocsEnviar').val() == 'Acesso'){
+                
+          jQuery('form[name=ocslogin]').find('#ocsEnviar').val('enviado');
+          myIframe.onload = function() {
+              jQuery('form[name=loginform]').submit();
+          };
+
+          return false;
+        }else{
+          return true;
+        }
+      });
+       
+    // -->
+    </script>  
+    
+    <!-- when the form is submitted, the server response will appear in this iframe -->
+    <iframe id="ocs_iframe" name="ocs_iframe" src=""></iframe>
+  </div>
+  
+  <?php
+}
+/***** fim da alteração para login no ocs ***/

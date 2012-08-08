@@ -3,11 +3,170 @@
 Plugin Name: NEXT BuddyPress Pack
 Plugin URI: {URI where you plan to host your plugin file}
 Description: Plugin to add some widgets used in NEXT social networks
-Version: 1
+Version: 0.3.0
 Author: Alberto Souza 
 Author URI: albertosouza.net
 */
 
+// Bloco para mostrar os administradores do Grupo
+class BpNextAdmGroupWidget extends WP_Widget {
+  function BpNextAdmGroupWidget() {
+    parent::WP_Widget( false, $name = 'Bloco de Administradores do Grupo' );
+  }
+
+  function widget( $args, $instance ) {
+    extract( $args );
+
+    echo $before_widget;
+
+    // add more menu items
+    bp_next_pack_add_menu_items();
+      $title = apply_filters('widget_title', $instance['title']);
+      if( $title ) echo $before_title . $title . $after_title;
+      $this->admGroup( $args, $instance );
+
+    echo $after_widget;
+  }
+
+  //////////////////////////////////////////////////////
+  //Update the widget settings
+  /**
+   * Update the login widget options
+   *
+   * @param array $new_instance The new instance options
+   * @param array $old_instance The old instance options
+   */
+  function update( $new_instance, $old_instance ) {
+    $instance             = $old_instance;
+    $instance['title']    = strip_tags( $new_instance['title'] );
+    $instance['register'] = esc_url( $new_instance['register'] );
+    $instance['lostpass'] = esc_url( $new_instance['lostpass'] );
+
+    return $instance;
+  }
+  
+  ////////////////////////////////////////////////////
+  //Display the widget settings on the widgets admin panel
+  function form( $instance ) {
+
+    // Form values
+    $title    = !empty( $instance['title'] )    ? esc_attr( $instance['title'] )    : '';
+
+    ?>
+
+    <p>
+      <label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:', 'bbpress' ); ?>
+      <input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo $title; ?>" /></label>
+    </p>
+
+    <?php
+  }
+  // 
+  function admGroup( $args, $instance ){
+    if ( bp_has_groups() ) : while ( bp_groups() ) : bp_the_group();
+	?>
+	<div id="item-actions">
+			<?php if ( bp_group_is_visible() ) : ?>
+		
+				<div id="group-admins">
+				<h3><?php _e( 'Administrators', 'buddypress' ) ?></h3><br/>
+				<?php bp_group_admin_memberlist( false ) ?>
+		
+				<?php do_action( 'bp_after_group_menu_admins' ) ?>
+				</div>
+		
+				<?php if ( bp_group_has_moderators() ) : ?>
+					<div id="group-mods">
+					<?php do_action( 'bp_before_group_menu_mods' ) ?>
+		
+					<h3><?php _e( 'Moderators' , 'buddypress' ) ?></h3>
+					<?php bp_group_mod_memberlist( false ) ?>
+		
+					<?php do_action( 'bp_after_group_menu_mods' ) ?>
+					</div>
+				<?php endif; ?>
+				
+				<?php do_action( 'bp_before_group_header_meta' ) ?>
+
+				<div id="item-meta">			
+					<?php do_action( 'bp_group_header_meta' ) ?>
+				</div>
+		
+			<?php endif; ?>
+		</div><!-- #item-actions -->
+		<?php endwhile; endif; ?>
+	<?php
+  }
+
+}
+
+
+// IMAGEM DO GRUPO
+class BpNextImageGroupWidget extends WP_Widget {
+  function BpNextImageGroupWidget() {
+    parent::WP_Widget( false, $name = 'Imagem do grupo' );
+  }
+
+  function widget( $args, $instance ) {
+    extract( $args );
+
+    echo $before_widget;
+
+    // add more menu items
+    bp_next_pack_add_menu_items();
+      $title = apply_filters('widget_title', $instance['title']);
+      if( $title ) echo $before_title . $title . $after_title;
+      $this->imageGroup( $args, $instance );
+
+    echo $after_widget;
+  }
+
+  //////////////////////////////////////////////////////
+  //Update the widget settings
+  /**
+   * Update the login widget options
+   *
+   * @param array $new_instance The new instance options
+   * @param array $old_instance The old instance options
+   */
+  function update( $new_instance, $old_instance ) {
+    $instance             = $old_instance;
+    $instance['title']    = strip_tags( $new_instance['title'] );
+    $instance['register'] = esc_url( $new_instance['register'] );
+    $instance['lostpass'] = esc_url( $new_instance['lostpass'] );
+
+    return $instance;
+  }
+  
+  ////////////////////////////////////////////////////
+  //Display the widget settings on the widgets admin panel
+  function form( $instance ) {
+
+    // Form values
+    $title    = !empty( $instance['title'] )    ? esc_attr( $instance['title'] )    : '';
+
+    ?>
+
+    <p>
+      <label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:', 'bbpress' ); ?>
+      <input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo $title; ?>" /></label>
+    </p>
+
+    <?php
+  }
+  // 
+  function imageGroup( $args, $instance ){
+	if ( bp_has_groups() ) : while ( bp_groups() ) : bp_the_group();
+		?>
+		<div id="item-header-avatar">
+			<a href="<?php bp_group_permalink() ?>" title="<?php bp_group_name() ?>">
+				<?php bp_group_avatar() ?>
+			</a>
+		</div><!-- #item-header-avatar -->
+	<?php endwhile; endif; 
+  }
+
+}
 class BpNextProfileWidget extends WP_Widget {
   function BpNextProfileWidget() {
     parent::WP_Widget( false, $name = 'NEXT Logged ind user Profile' );
@@ -18,12 +177,17 @@ class BpNextProfileWidget extends WP_Widget {
 
     echo $before_widget;
 
+    // add more menu items
+    bp_next_pack_add_menu_items();
+
     if ( is_user_logged_in() ) {
       $title = apply_filters('widget_title', $instance['title']);
       if( $title ) echo $before_title . $title . $after_title;
-      $this->logedUserBlock( $args, $instance ); 
-
+      $this->logedUserBlock( $args, $instance );
     }else {
+      echo $before_title;
+      _e('Login block','bp-next-pack');
+      echo $after_title;
       $this->disconectedUser( $args, $instance );
     }
     echo $after_widget;
@@ -77,50 +241,19 @@ class BpNextProfileWidget extends WP_Widget {
 
   function disconectedUser( $args, $instance ) {
     ?><div class="login-box"><?php
-    global $opt_jfb_hide_button;
-    if( !get_option($opt_jfb_hide_button) ){
-        jfb_output_facebook_btn();
-        ?> <span class="login_or"><?php _e('or'); ?></span> <?php 
-    }
-
+    // get login form
+    self::getLoginForm();
+    // facebook login buttom
+    self::GetFacebookLogin();
+    // login nav buttom 
+    self::GetLoginNav();
     ?>
-      <form name="loginform" method="post" action="<?php bbp_wp_login_action( array( 'context' => 'login_post' ) ); ?>" class="bbp-login-form">
-        <fieldset>
-          <legend><?php _e( 'Log In', 'bbpress' ); ?></legend>
-          <div class="bbp-username">
-            <label for="user_login"><?php _e( 'Username', 'bbpress' ); ?>: </label>
-            <input type="text" name="log" value="<?php bbp_sanitize_val( 'user_login', 'text' ); ?>" size="20" id="user_login" tabindex="<?php bbp_tab_index(); ?>" />
-          </div>
-          <div class="bbp-password">
-            <label for="user_pass"><?php _e( 'Password', 'bbpress' ); ?>: </label>
-            <input type="password" name="pwd" value="<?php bbp_sanitize_val( 'user_pass', 'password' ); ?>" size="20" id="user_pass" tabindex="<?php bbp_tab_index(); ?>" />
-          </div>
-          <div class="bbp-remember-me">
-            <input type="checkbox" name="rememberme" value="forever" <?php checked( bbp_get_sanitize_val( 'rememberme', 'checkbox' ), true, true ); ?> id="rememberme" tabindex="<?php bbp_tab_index(); ?>" />
-            <label for="rememberme"><?php _e( 'Remember Me', 'bbpress' ); ?></label>
-          </div>
-          <div class="bbp-submit-wrapper">
-            <?php do_action( 'login_form' ); ?>
-            <button type="submit" name="user-submit" id="user-submit" tabindex="<?php bbp_tab_index(); ?>" class="button submit user-submit"><?php _e( 'Log In', 'bbpress' ); ?></button>
-            <?php bbp_user_login_fields(); ?>
-          </div>
-          <?php if ( !empty( $register ) || !empty( $lostpass ) ) : ?>
-            <div class="bbp-login-links">
-              <?php if ( !empty( $register ) ) : ?>
-                <a href="<?php echo esc_url( $register ); ?>" title="<?php _e( 'Register', 'bbpress' ); ?>" class="bbp-register-link"><?php _e( 'Register', 'bbpress' ); ?></a>
-              <?php endif; ?>
-              <?php if ( !empty( $lostpass ) ) : ?>
-                <a href="<?php echo esc_url( $lostpass ); ?>" title="<?php _e( 'Lost Password', 'bbpress' ); ?>" class="bbp-lostpass-link"><?php _e( 'Lost Password', 'bbpress' ); ?></a>
-              <?php endif; ?>
-            </div>
-          <?php endif; ?>
-        </fieldset>
-      </form>
-       <?php do_action( 'login_footer' ); ?>
+      
     </div>
     <?php
-  }
 
+  }
+  
   function logedUserBlock( $args, $instance ){
     $userdata = wp_get_current_user();
     $user_image_args = array(
@@ -159,90 +292,71 @@ class BpNextProfileWidget extends WP_Widget {
     </div><!-- #item-nav -->
     <?php
   }
-}
-
-
-class BpNextAddWidget extends WP_Widget {
-  function BpNextAddWidget() {
-    parent::WP_Widget( false, $name = 'NEXT add Menu' );
-  }
-
-  function widget( $args, $instance ) {
-    extract( $args );
-
-    echo $before_widget;
-
-    $title = apply_filters('widget_title', $instance['title']);
-    if( $title ) echo $before_title . $title . $after_title;
-    $this->logedUserBlock( $args, $instance ); 
-
-    echo $after_widget;
-  }
-
-  //////////////////////////////////////////////////////
-  //Update the widget settings
-  /**
-   * Update the login widget options
-   *
-   * @param array $new_instance The new instance options
-   * @param array $old_instance The old instance options
-   */
-  function update( $new_instance, $old_instance ) {
-    $instance             = $old_instance;
-    $instance['title']    = strip_tags( $new_instance['title'] );
-
-    return $instance;
-  }
   
-  ////////////////////////////////////////////////////
-  //Display the widget settings on the widgets admin panel
-  function form( $instance ) {
-
-    // Form values
-    $title    = !empty( $instance['title'] )    ? esc_attr( $instance['title'] )    : '';
-
+  function getLoginForm(){
     ?>
-
-    <p>
-      <label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:', 'bbpress' ); ?>
-      <input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo $title; ?>" /></label>
-    </p>
-
-
+    <form method="post" action="<?php bbp_wp_login_action( array( 'context' => 'login_post' ) ); ?>" class="bbp-login-form">
+      <fieldset>
+        <legend><?php _e( 'Log In', 'bbpress' ); ?></legend>
+        <div class="bbp-username">
+          <label for="user_login"><?php _e( 'Username', 'bbpress' ); ?>: </label>
+          <input type="text" name="log" value="<?php bbp_sanitize_val( 'user_login', 'text' ); ?>" size="20" id="user_login" tabindex="<?php bbp_tab_index(); ?>" />
+        </div>
+        <div class="bbp-password">
+          <label for="user_pass"><?php _e( 'Password', 'bbpress' ); ?>: </label>
+          <input type="password" name="pwd" value="<?php bbp_sanitize_val( 'user_pass', 'password' ); ?>" size="20" id="user_pass" tabindex="<?php bbp_tab_index(); ?>" />
+        </div>
+        <div class="bbp-remember-me">
+          <input type="checkbox" name="rememberme" value="forever" <?php checked( bbp_get_sanitize_val( 'rememberme', 'checkbox' ), true, true ); ?> id="rememberme" tabindex="<?php bbp_tab_index(); ?>" />
+          <label for="rememberme"><?php _e( 'Remember Me', 'bbpress' ); ?></label>
+        </div>
+        <div class="bbp-submit-wrapper">
+          <?php do_action( 'login_form' ); ?>
+          <button type="submit" name="user-submit" id="user-submit" tabindex="<?php bbp_tab_index(); ?>" class="button submit user-submit"><?php _e( 'Log In', 'bbpress' ); ?></button>
+          <?php bbp_user_login_fields(); ?>
+        </div>
+        <?php if ( !empty( $register ) || !empty( $lostpass ) ) : ?>
+          <div class="bbp-login-links">
+            <?php if ( !empty( $register ) ) : ?>
+              <a href="<?php echo esc_url( $register ); ?>" title="<?php _e( 'Register', 'bbpress' ); ?>" class="bbp-register-link"><?php _e( 'Register', 'bbpress' ); ?></a>
+            <?php endif; ?>
+            <?php if ( !empty( $lostpass ) ) : ?>
+              <a href="<?php echo esc_url( $lostpass ); ?>" title="<?php _e( 'Lost Password', 'bbpress' ); ?>" class="bbp-lostpass-link"><?php _e( 'Lost Password', 'bbpress' ); ?></a>
+            <?php endif; ?>
+          </div>
+        <?php endif; ?>
+      </fieldset>
+    </form>
     <?php
   }
-
   
-  function logedUserBlock( $args, $instance ){
-    $userdata = wp_get_current_user();
-    
-    ?>
-    <div class="bp-next-pack-user-menu" >
-    <ul class="superfish-menu sf-vertical sf-js-enabled sf-shadow">
-      <?php
-      // add message
-      ?>
-      <li><a class="sf-with-ul add-group" 
-        href="<?php echo trailingslashit( bp_get_root_domain() . '/members/alberto/messages/compose/' ); ?>">
-      <?php _e( 'Messages', 'buddypress' ); ?> </a></li> <?php
+  function getFacebookLogin(){
+    global $opt_jfb_hide_button;
       
-      // add group link
-      if ( is_user_logged_in() && bp_user_can_create_groups() ){
-        ?><li><a class="sf-with-ul add-group" 
-        href="<?php echo trailingslashit( bp_get_root_domain() . '/' . bp_get_groups_root_slug() . '/create' ); ?>">
-        <?php _e( 'Group', 'buddypress' ); ?> </a></li><?php
-      }
-   
-       // add site
-      ?>
-      <li><a class="sf-with-ul add-group" 
-        href="<?php echo trailingslashit( bp_get_root_domain() . '/sites/create/' ); ?>">
-      <?php _e( 'Messages', 'buddypress' ); ?> </a></li><?php
+    if( !get_option($opt_jfb_hide_button) ){
+      ?><div class="facebook-login"?>
+      <span class="login_or"><?php _e('or'); ?></span> <?php 
+      jfb_output_facebook_btn();
+      ?></div><?php
+    }
     
-    ?> </div></ul> <?php
+  }
+    
+  // get login nav for login block
+  function getLoginNav(){
+    if ( !$interim_login ) { ?>
+      <p id="nav">
+      <?php if ( isset($_GET['checkemail']) && in_array( $_GET['checkemail'], array('confirm', 'newpass') ) ) : ?>
+      <?php elseif ( get_option('users_can_register') ) : ?>
+      <a href="<?php echo esc_url( site_url( 'wp-login.php?action=register', 'login' ) ); ?>"><?php _e( 'Register' ); ?></a> |
+      <a href="<?php echo esc_url( wp_lostpassword_url() ); ?>" title="<?php esc_attr_e( 'Password Lost and Found' ); ?>"><?php _e( 'Lost your password?' ); ?></a>
+      <?php else : ?>
+      <a href="<?php echo esc_url( wp_lostpassword_url() ); ?>" title="<?php esc_attr_e( 'Password Lost and Found' ); ?>"><?php _e( 'Lost your password?' ); ?></a>
+      <?php endif; ?>
+      </p>
+    <?php } 
   }
 }
-
 
 
 class BpNextUserGroupsWidget extends WP_Widget {
@@ -283,16 +397,6 @@ class BpNextUserGroupsWidget extends WP_Widget {
           <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo $instance['title']; ?>" />
       </p>
       <?php
-  }
-  
-  
-  /**
-   * show something here if the user is disconected
-   * 
-   */
-  function disconectedUser( $args, $instance ) {
-    
-
   }
   
   /**
@@ -359,12 +463,68 @@ class BpNextUserGroupsWidget extends WP_Widget {
   }
 }
 
+
+
+class UserLoggedImgWidget extends WP_Widget {
+  function UserLoggedImgWidget() {
+    parent::WP_Widget( false, $name = 'Widgets com usuários logados' );
+  }
+
+  function widget( $args, $instance ) {
+    
+	  extract( $args );
+	  echo $before_widget;
+	  $title = apply_filters('widget_title', $instance['title']);
+	  if( $title ) echo $before_title . $title . $after_title;
+	  
+		$uids = bp_next_pack_get_random_users();
+		
+		echo '<ul class="header-block">';
+			foreach($uids as $indice=>$uid){
+				
+				echo '<li class="img-0'.$indice.'">';
+					echo bp_core_fetch_avatar( array( 'item_id' => $uid, 'type' => 'full' ) ) ;
+				echo '</li>';
+			}
+		echo '</ul>';
+	  
+	  
+	  echo $after_widget;
+  }
+
+
+  //////////////////////////////////////////////////////
+  //Update the widget settings
+  function update( $new_instance, $old_instance )
+  {
+      $instance = $old_instance;
+      $instance['title'] = $new_instance['title'];
+      return $instance;
+  }
+  
+  ////////////////////////////////////////////////////
+  //Display the widget settings on the widgets admin panel
+  function form( $instance )
+  {
+      ?>
+      <p>
+          <label for="<?php echo $this->get_field_id('title'); ?>"><?php echo 'Title:'; ?></label>
+          <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo $instance['title']; ?>" />
+      </p>
+      <?php
+  }
+  
+  function LoggedUserList () {}
+  
+}
+
 add_action( 'widgets_init', 'BpNextProfileWidgetInit' );
 function BpNextProfileWidgetInit() {
   register_widget( 'BpNextProfileWidget' );
   register_widget( 'BpNextUserGroupsWidget' );
-  register_widget( 'BpNextAddWidget' );
-  
+  register_widget( 'UserLoggedImgWidget' );
+  register_widget( 'BpNextAdmGroupWidget' );
+  register_widget( 'BpNextImageGroupWidget' );
 }
 
 // **** "logged in  Account" Menu ******
@@ -387,8 +547,12 @@ function bp_next_pack_adminbar_account_menu() {
   </script>
   <div class="bp-next-pack-user-menu" >
     <ul class="superfish-menu sf-vertical sf-js-enabled sf-shadow">
+      
   <?php
 
+  // notification menu  
+  bp_next_pack_bp_adminbar_notifications_menu();
+  
   // Loop through each navigation item
   $counter = 0;
   foreach( (array)$bp->bp_nav as $nav_item ) {
@@ -420,100 +584,132 @@ function bp_next_pack_adminbar_account_menu() {
       }
       echo '</ul>';
     }
-
     echo '</li>';
-
     $counter++;
   }
-
   $alt = ( 0 == $counter % 2 ) ? ' class="alt"' : '';
-
   echo '<li' . $alt . '><a id="bp-admin-logout" class="logout" href="' . wp_logout_url( home_url() ) . '">' . __( 'Log Out', 'buddypress' ) . '</a></li>';
   echo '</ul>';
   echo '</div>';  
 }
 
-// _----------------------____------------________-------_______------_______-------_____--
-/**  Alteração no menu de login para melhorar logar também OCS os 2 usando LDAP  **/
+/**
+ * Function to add links to buddypress bar
+ * @TODO Need add translaction suport
+ * return void
+ */
+function bp_next_pack_add_menu_items(){
+  global $bp;
+    
+  // add goups menu item
+  bp_core_new_subnav_item( array(
+    'name' => 'Criar grupo',
+    'slug' => 'create',
+    'parent_slug' => $bp->groups->slug,
+    'parent_url' => $bp->loggedin_user->domain . $bp->groups->slug . '/',
+    'screen_function' => true,
+    'position' => 0
+  ) );
+
+  // add events menu item
+  bp_core_new_subnav_item( array(
+    'name' => 'Criar evento',
+    'slug' => 'create',
+    'parent_slug' => $bp->events->slug,
+    'parent_url' => $bp->loggedin_user->domain . $bp->events->slug . '/',
+    'screen_function' => true,
+    'position' => 0
+  ) );   
+
+  // add sites menu item
+  bp_core_new_subnav_item( array(
+    'name' => 'Criar blog',
+    'slug' => 'create',
+    'parent_slug' => $bp->blogs->slug,
+    'parent_url' => $bp->loggedin_user->domain . $bp->blogs->root_slug . '/',
+    'screen_function' => true,
+    'position' => 0
+  ) );
+  
+
+  // add encontrar amigos menu item
+  bp_core_new_subnav_item( array(
+    'name' => 'Encontrar',
+    'slug' => '/',
+    'parent_slug' => $bp->friends->slug,
+    'parent_url' => $bp->root_domain . '/' . $bp->members->root_slug ,
+    'screen_function' => true,
+    'position' => 0
+  ) );
+  
+
+  // sort the sub menu items
+  bp_core_sort_subnav_items();
+  
+}
+
+// get users with specified roles
+function bp_next_pack_get_random_users( ) {
+    global $wpdb;
+    
+    $sql = '
+        SELECT distinct  ID, display_name
+        FROM        ' . $wpdb->users . ' INNER JOIN ' . $wpdb->usermeta . '
+        ON          ' . $wpdb->users . '.ID             =       ' . $wpdb->usermeta . '.user_id
+    ';
+
+    $sql .= ' ORDER BY RAND() ';
+	$sql .= ' LIMIT 4 ';
+    $userIDs = $wpdb->get_col( $sql );
+    return $userIDs;
+}
+
 
 /**
- * Add a "Login with Shibboleth" link to the WordPress login form.  This link 
- * will be wrapped in a <p> with an id value of "shibboleth_login" so that 
- * deployers can style this however they choose.
+ * Notifications Menu
  */
-function bp_next_pack_login_form() {
-  //$login_url = add_query_arg('action', 'shibboleth');
-  
-  bp_next_pack_ocs_login_sniplet_and_form();
-  
-	// echo '<p id="shibboleth_login"><a href="' . $login_url . '">' . __('Login with Shibboleth', 'shibboleth') . '</a></p>';
+function bp_next_pack_bp_adminbar_notifications_menu() {
+
+	if ( !is_user_logged_in() )
+		return false;
+
+		
+	$notifications = bp_core_get_notifications_for_user( bp_loggedin_user_id() );
+	
+	echo '<li id="bp-adminbar-notifications-menu"';
+	
+	if ($notifications){
+	echo 'class="aviso"';	
+	}	
+	echo '><a href="' . bp_loggedin_user_domain() . '">';
+	_e( 'Notifications', 'buddypress' );
+
+	if ( $notifications ) { ?>
+		<span><?php echo count( $notifications ) ?></span>
+	<?php
+	}
+
+	echo '</a>';
+	echo '<ul>';
+
+	if ( $notifications ) {
+		$counter = 0;
+		for ( $i = 0, $count = count( $notifications ); $i < $count; ++$i ) {
+			$alt = ( 0 == $counter % 2 ) ? ' class="alt"' : ''; ?>
+
+			<li<?php echo $alt ?>><?php echo $notifications[$i] ?></li>
+
+			<?php $counter++;
+		}
+	} else { ?>
+
+		<li><a href="<?php echo bp_loggedin_user_domain() ?>"><?php _e( 'No new notifications.', 'buddypress' ); ?></a></li>
+
+	<?php
+	}
+
+	echo '</ul>';
+	echo '</li>';
 }
-add_action('login_footer', 'bp_next_pack_login_form');
 
-function bp_next_pack_ocs_login_sniplet_and_form() {
-  ?>
-  <div class="container-ocs-form" style="display:none" >
-    <form id="signinForm" name="ocslogin" method="post" target="ocs_iframe" action="http://localhost/confs/index.php/testando/teste/login/signIn">
-
-    <input type="hidden" name="source" value="">
-
-      <table id="signinTable" class="data">
-      <tbody><tr>
-        <td class="label"><label for="loginUsername">Login</label></td>
-        <td class="value"><input type="text" id="loginUsername" name="username" value="next" size="20" maxlength="32" class="textField"></td>
-      </tr>
-      <tr>
-        <td class="label"><label for="loginPassword">Senha</label></td>
-        <td class="value"><input type="password" id="loginPassword" name="password" value="" size="20" maxlength="32" class="textField"></td>
-      </tr>
-        <tr valign="middle">
-        <td></td>
-        <td class="value"><input type="checkbox" id="loginRemember" name="remember" value="1" checked='checked'> <label for="loginRemember">Lembrete com login e senha</label></td>
-      </tr>
-        <tr>
-        <td></td>
-        <td><input id="ocsEnviar" type="submit" value="Acesso" class="button"></td>
-      </tr>
-      </tbody></table>
-    <script type="text/javascript">
-    <!--
-      document.login.loginPassword.focus();
-    // -->
-    </script>
-    </form>
-    
-    <script type="text/javascript">
-    <!--
-      jQuery('form[name=loginform]').submit(function(){
-        var login = jQuery('form[name=loginform]').find('#user_login').val();
-        var senha = jQuery('form[name=loginform]').find('#user_pass').val();
-
-        jQuery('form[name=ocslogin]').find('#loginUsername').val(login);
-        jQuery('form[name=ocslogin]').find('#loginPassword').val(senha);
-        jQuery('form[name=ocslogin]').submit();
-
-        var myIframe = document.getElementById('ocs_iframe');
-        
-        if(jQuery('form[name=ocslogin]').find('#ocsEnviar').val() == 'Acesso'){
-                
-          jQuery('form[name=ocslogin]').find('#ocsEnviar').val('enviado');
-          myIframe.onload = function() {
-              jQuery('form[name=loginform]').submit();
-          };
-
-          return false;
-        }else{
-          return true;
-        }
-      });
-       
-    // -->
-    </script>  
-    
-    <!-- when the form is submitted, the server response will appear in this iframe -->
-    <iframe id="ocs_iframe" name="ocs_iframe" src=""></iframe>
-  </div>
-  
-  <?php
-}
-/***** fim da alteração para login no ocs ***/
+?>

@@ -712,4 +712,76 @@ function bp_next_pack_bp_adminbar_notifications_menu() {
 	echo '</li>';
 }
 
+
+// -------------- Parte de selects dos windgets para determinar 
+// quando vai mostrar o widget logica retirada do pb-extended-windget ----
+
+/*
+ * The main loader
+*/
+add_action('bp_init', 'bp_next_pack_ew_load');
+function bp_next_pack_ew_load(){
+	// Load languages if any
+	//if ( file_exists( dirname(__File__) . '/langs/' . get_locale() . '.mo' ) )
+	//	load_textdomain( 'bpew', dirname(__File__) . '/langs/' . get_locale() . '.mo' );
+
+	// display our own fields
+	add_action('in_widget_form', 'bp_next_pack_ew_extend_form', 10, 3);
+
+	// save our new things
+	add_filter('widget_update_callback', 'bp_next_pack_ew_extend_update', 10, 4);
+
+	// display content if needed
+	add_filter('widget_display_callback', 'bp_next_pack_ew_extend_display', 10, 3);
+}
+
+
+/*
+ * Handlers
+*/
+function bp_next_pack_ew_extend_form($class, $return, $instance){
+	echo '<hr /><p>'.__('Display the widget if it satisfies BuddyPress-specific options below:','bpew').'</p>';
+
+	if(!isset($instance['bp_component_type']))
+		$instance['bp_component_type'] = '';
+	if(!isset($instance['bp_component_ids']))
+		$instance['bp_component_ids'] = '';
+
+	echo '<p>
+	<label id="'.$class->get_field_id('bp_next_component_type').'">'. 'Please select for what to apply' .':</label><br />
+	<input '.checked($instance['bp_next_component_type'], '', false).' type="radio" name="'.$class->get_field_name('bp_next_component_type').'" value=""/> '. 'Do not apply' .'<br />
+	<input '.checked($instance['bp_next_component_type'], 'group_home', false).' type="radio" name="'.$class->get_field_name('bp_next_component_type').'" value="group_home"/> '. 'Apenas na home dos grupos' .'<br />
+	</p>';
+
+
+	add_action('bp_next_pack_ew_extend_form', $class, $return, $instance);
+
+	return $return;
+}
+
+function bp_next_pack_ew_extend_update($instance, $new_instance, $old_instance, $this){
+	$new_instance = apply_filters('bp_next_pack_ew_extend_update', $new_instance, $old_instance, $instance, $this);
+
+	return $new_instance;
+}
+
+function bp_next_pack_ew_extend_display($instance, $this, $args){
+	if(empty($instance['bp_next_component_type']))
+		return $instance;
+	
+	global $bp;
+
+	// display on groups home pages only
+	$group_id = $bp->groups->current_group->id;
+	if($instance['bp_next_component_type'] == 'group_home' && !empty($group_id)
+			&& bp_is_group_home() ){
+		
+		return $instance;
+	}
+	
+	return false;
+}
+
+
+
 ?>

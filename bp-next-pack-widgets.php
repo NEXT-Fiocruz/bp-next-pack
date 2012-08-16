@@ -1,12 +1,4 @@
 <?php
-/*
-Plugin Name: NEXT BuddyPress Pack
-Plugin URI: {URI where you plan to host your plugin file}
-Description: Plugin to add some widgets used in NEXT social networks
-Version: 0.3.0
-Author: Alberto Souza 
-Author URI: albertosouza.net
-*/
 
 // Bloco para mostrar os administradores do Grupo
 class BpNextAdmGroupWidget extends WP_Widget {

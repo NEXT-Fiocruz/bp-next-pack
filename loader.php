@@ -1,9 +1,9 @@
 <?php
 /*
-Plugin Name: NEXT BuddyPress Pack
-Plugin URI: {URI where you plan to host your plugin file}
+Plugin Name: bp-next-pack
+Plugin URI: https://github.com/NEXT-Fiocruz/bp-next-pack
 Description: Plugin to add some widgets used in NEXT social networks
-Version: 0.3.0
+Version: 0.4.0
 Author: Alberto Souza 
 Author URI: albertosouza.net
 */

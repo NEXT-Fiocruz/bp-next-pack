@@ -178,7 +178,7 @@ class BpNextProfileWidget extends WP_Widget {
       $this->logedUserBlock( $args, $instance );
     }else {
       echo $before_title;
-      _e('Login block','bp-next-pack');
+      _e('Login','bp-next-pack');
       echo $after_title;
       $this->disconectedUser( $args, $instance );
     }
@@ -287,37 +287,30 @@ class BpNextProfileWidget extends WP_Widget {
   
   function getLoginForm(){
     ?>
-    <form method="post" action="<?php bbp_wp_login_action( array( 'context' => 'login_post' ) ); ?>" class="bbp-login-form">
-      <fieldset>
-        <legend><?php _e( 'Log In', 'bbpress' ); ?></legend>
-        <div class="bbp-username">
-          <label for="user_login"><?php _e( 'Username', 'bbpress' ); ?>: </label>
-          <input type="text" name="log" value="<?php bbp_sanitize_val( 'user_login', 'text' ); ?>" size="20" id="user_login" tabindex="<?php bbp_tab_index(); ?>" />
-        </div>
-        <div class="bbp-password">
-          <label for="user_pass"><?php _e( 'Password', 'bbpress' ); ?>: </label>
-          <input type="password" name="pwd" value="<?php bbp_sanitize_val( 'user_pass', 'password' ); ?>" size="20" id="user_pass" tabindex="<?php bbp_tab_index(); ?>" />
-        </div>
-        <div class="bbp-remember-me">
-          <input type="checkbox" name="rememberme" value="forever" <?php checked( bbp_get_sanitize_val( 'rememberme', 'checkbox' ), true, true ); ?> id="rememberme" tabindex="<?php bbp_tab_index(); ?>" />
-          <label for="rememberme"><?php _e( 'Remember Me', 'bbpress' ); ?></label>
-        </div>
-        <div class="bbp-submit-wrapper">
-          <?php do_action( 'login_form' ); ?>
-          <button type="submit" name="user-submit" id="user-submit" tabindex="<?php bbp_tab_index(); ?>" class="button submit user-submit"><?php _e( 'Log In', 'bbpress' ); ?></button>
-          <?php bbp_user_login_fields(); ?>
-        </div>
-        <?php if ( !empty( $register ) || !empty( $lostpass ) ) : ?>
-          <div class="bbp-login-links">
-            <?php if ( !empty( $register ) ) : ?>
-              <a href="<?php echo esc_url( $register ); ?>" title="<?php _e( 'Register', 'bbpress' ); ?>" class="bbp-register-link"><?php _e( 'Register', 'bbpress' ); ?></a>
-            <?php endif; ?>
-            <?php if ( !empty( $lostpass ) ) : ?>
-              <a href="<?php echo esc_url( $lostpass ); ?>" title="<?php _e( 'Lost Password', 'bbpress' ); ?>" class="bbp-lostpass-link"><?php _e( 'Lost Password', 'bbpress' ); ?></a>
-            <?php endif; ?>
-          </div>
-        <?php endif; ?>
-      </fieldset>
+    
+    <form name="loginform" id="loginform" action="<?php echo esc_url( site_url( 'wp-login.php', 'login_post' ) ); ?>" method="post">
+      <p>
+        <label for="user_login"><?php _e('Username') ?><br />
+        <input type="text" name="log" id="user_login" class="input" value="<?php echo esc_attr($user_login); ?>" size="20" tabindex="10" /></label>
+      </p>
+      <p>
+        <label for="user_pass"><?php _e('Password') ?><br />
+        <input type="password" name="pwd" id="user_pass" class="input" value="" size="20" tabindex="20" /></label>
+      </p>
+    <?php do_action('login_form'); ?>
+      <p class="forgetmenot"><label for="rememberme"><input name="rememberme" type="checkbox" id="rememberme" value="forever" tabindex="90"<?php checked( $rememberme ); ?> /> <?php esc_attr_e('Remember Me'); ?></label></p>
+      <p class="submit">
+        <input type="submit" name="wp-submit" id="wp-submit" class="button-primary" value="<?php esc_attr_e('Log In'); ?>" tabindex="100" />
+    <?php if ( $interim_login ) { ?>
+        <input type="hidden" name="interim-login" value="1" />
+    <?php } else { ?>
+        <input type="hidden" name="redirect_to" value="<?php echo esc_attr($redirect_to); ?>" />
+    <?php   } ?>
+    <?php   if ( $customize_login ) : ?>
+        <input type="hidden" name="customize-login" value="1" />
+    <?php   endif; ?>
+        <input type="hidden" name="testcookie" value="1" />
+      </p>
     </form>
     <?php
   }
@@ -327,11 +320,10 @@ class BpNextProfileWidget extends WP_Widget {
       
     if( !get_option($opt_jfb_hide_button) ){
       ?><div class="facebook-login"?>
-      <span class="login_or"><?php _e('or'); ?></span> <?php 
+      <span class="login_or"><?php _e('or','textdomain'); ?></span> <?php 
       jfb_output_facebook_btn();
       ?></div><?php
     }
-    
   }
     
   // get login nav for login block
@@ -774,6 +766,23 @@ function bp_next_pack_ew_extend_display($instance, $this, $args){
 	return false;
 }
 
-
+/**
+ * Função para resolver o problema do redirect depois de login 
+ */
+// Redirect admins to the dashboard and other users elsewhere
+add_filter( 'login_redirect', 'bp_next_pack_login_redirect', 10, 3 );
+function bp_next_pack_login_redirect( $redirect_to, $request, $user ) {
+    print_r($redirect_to); exit;
+    // Is there a user?
+    if ( is_array( $user->roles ) ) {
+        // Is it an administrator?
+        if ( in_array( 'administrator', $user->roles ) )
+            return home_url( '/wp-admin/' );
+        else
+            return home_url();
+            // return get_permalink( 83 );
+    }
+}
+ 
 
 ?>

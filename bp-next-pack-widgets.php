@@ -766,23 +766,5 @@ function bp_next_pack_ew_extend_display($instance, $this, $args){
 	return false;
 }
 
-/**
- * Função para resolver o problema do redirect depois de login 
- */
-// Redirect admins to the dashboard and other users elsewhere
-add_filter( 'login_redirect', 'bp_next_pack_login_redirect', 10, 3 );
-function bp_next_pack_login_redirect( $redirect_to, $request, $user ) {
-    print_r($redirect_to); exit;
-    // Is there a user?
-    if ( is_array( $user->roles ) ) {
-        // Is it an administrator?
-        if ( in_array( 'administrator', $user->roles ) )
-            return home_url( '/wp-admin/' );
-        else
-            return home_url();
-            // return get_permalink( 83 );
-    }
-}
- 
 
 ?>
